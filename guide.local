@@ -1,0 +1,506 @@
+# Quick Reference Guide - Azure AD SSO Customer Portal
+
+## 📦 Project Structure
+```
+customer-portal/
+├── views/
+│   ├── home.ejs           # Public landing page
+│   ├── dashboard.ejs      # Main dashboard (protected)
+│   ├── profile.ejs        # User profile (protected)
+│   ├── invoices.ejs       # Billing history (protected)
+│   └── support.ejs        # Support tickets (protected)
+├── server.js              # Main application server
+├── .env                   # Environment variables (DO NOT COMMIT)
+├── .env.example           # Example environment file
+├── .gitignore             # Git ignore file
+├── package.json           # Dependencies
+└── README.md              # Documentation
+```
+
+---
+
+## 🚀 Quick Setup (5 Minutes)
+
+### 1. Clone/Download Project
+```bash
+# Create project directory
+mkdir customer-portal && cd customer-portal
+```
+
+### 2. Create Files
+Copy the following files from the artifacts:
+- `server.js`
+- `package.json`
+- `.env.example` → rename to `.env`
+- All 5 EJS files in `views/` folder
+
+### 3. Install Dependencies
+```bash
+npm install
+```
+
+### 4. Configure Azure AD
+1. Go to https://portal.azure.com
+2. Navigate to Azure Active Directory → App registrations
+3. Create new registration or select existing
+4. Copy: Client ID, Tenant ID, Client Secret
+
+### 5. Update .env File
+```env
+AZURE_CLIENT_ID=paste-here
+AZURE_TENANT_ID=paste-here
+AZURE_CLIENT_SECRET=paste-here
+SESSION_SECRET=generate-random-string
+```
+
+### 6. Start Server
+```bash
+npm start
+```
+
+### 7. Test
+Open browser: http://localhost:3000
+
+---
+
+## 🔐 Authentication Flow
+
+```
+┌──────────────────────────────────────────────┐
+│ 1. User visits http://localhost:3000        │
+│    → Sees home page                          │
+└──────────────────────────────────────────────┘
+                    ↓
+┌──────────────────────────────────────────────┐
+│ 2. User clicks "Sign In"                     │
+│    → Redirects to Azure AD                   │
+└──────────────────────────────────────────────┘
+                    ↓
+┌──────────────────────────────────────────────┐
+│ 3. User logs in with Microsoft credentials   │
+│    → Azure AD validates user                 │
+└──────────────────────────────────────────────┘
+                    ↓
+┌──────────────────────────────────────────────┐
+│ 4. Azure AD redirects back with auth code    │
+│    → Server exchanges code for token         │
+│    → Session created ✓                       │
+└──────────────────────────────────────────────┘
+                    ↓
+┌──────────────────────────────────────────────┐
+│ 5. User redirected to dashboard              │
+│    → Full access to protected routes ✓       │
+└──────────────────────────────────────────────┘
+```
+
+---
+
+## 📍 Available Routes
+
+### Public Routes
+| Route | Description |
+|-------|-------------|
+| `GET /` | Home/landing page |
+| `GET /login` | Initiates Azure AD login |
+
+### Protected Routes (Require Authentication)
+| Route | Description |
+|-------|-------------|
+| `GET /dashboard` | Main dashboard |
+| `GET /profile` | User profile |
+| `GET /invoices` | Billing & invoices |
+| `GET /support` | Support tickets |
+| `POST /support/create` | Create new ticket |
+| `GET /logout` | Logout user |
+
+---
+
+## 🛠️ Useful Commands
+
+### Development
+```bash
+# Install dependencies
+npm install
+
+# Start server (production mode)
+npm start
+
+# Start with auto-reload (development)
+npm run dev
+
+# Generate session secret
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# Check for security vulnerabilities
+npm audit
+
+# Update dependencies
+npm update
+```
+
+### Testing
+```bash
+# Test if server is running
+curl http://localhost:3000
+
+# Test with verbose output
+curl -v http://localhost:3000
+```
+
+### Production (VM)
+```bash
+# Install PM2
+sudo npm install -g pm2
+
+# Start application
+pm2 start server.js --name customer-portal
+
+# View logs
+pm2 logs customer-portal
+
+# Restart application
+pm2 restart customer-portal
+
+# Stop application
+pm2 stop customer-portal
+
+# Enable startup on boot
+pm2 startup
+pm2 save
+
+# Monitor processes
+pm2 monit
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Issue: "Login failed" or "Authentication error"
+
+**Check:**
+```bash
+# 1. Verify .env values
+cat .env
+
+# 2. Check if all values are filled
+grep -E "AZURE_CLIENT_ID|AZURE_TENANT_ID|AZURE_CLIENT_SECRET" .env
+
+# 3. Verify redirect URI matches Azure AD
+echo $REDIRECT_URI
+```
+
+**Solution:**
+- Ensure Client ID, Tenant ID, Secret match Azure Portal
+- Verify redirect URI is exactly: `http://localhost:3000/redirect`
+- Check Azure AD app registration has correct permissions
+
+### Issue: Session lost after login
+
+**Check:**
+```bash
+# Verify express-session is installed
+npm list express-session
+
+# Check SESSION_SECRET is set
+echo $SESSION_SECRET
+```
+
+**Solution:**
+```bash
+# Reinstall dependencies
+rm -rf node_modules
+npm install
+
+# Generate new session secret
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+# Copy output to .env
+```
+
+### Issue: Cannot access protected routes
+
+**Check:**
+```javascript
+// Add debug middleware to server.js (after session middleware)
+app.use((req, res, next) => {
+  console.log('Session:', req.session);
+  console.log('User:', req.session.account);
+  next();
+});
+```
+
+**Solution:**
+- Clear browser cookies
+- Try incognito/private window
+- Check console logs for errors
+
+### Issue: Redirect URI mismatch
+
+**Error in browser:**
+```
+AADSTS50011: The redirect URI specified in the request does not match
+```
+
+**Solution:**
+1. Go to Azure Portal → App registrations
+2. Click "Authentication"
+3. Add exact redirect URI: `http://localhost:3000/redirect`
+4. Save changes
+5. Wait 1-2 minutes for propagation
+
+### Issue: Port already in use
+
+**Error:**
+```
+Error: listen EADDRINUSE: address already in use :::3000
+```
+
+**Solution:**
+```bash
+# Find process using port 3000
+lsof -i :3000
+
+# Kill the process
+kill -9 <PID>
+
+# Or use different port in .env
+PORT=3001
+```
+
+---
+
+## 🔒 Security Checklist
+
+Before deploying to production:
+
+- [ ] Changed `SESSION_SECRET` to strong random string
+- [ ] Set `NODE_ENV=production` in .env
+- [ ] Enabled HTTPS (SSL certificate)
+- [ ] Updated redirect URIs in Azure AD
+- [ ] Removed console.log statements with sensitive data
+- [ ] Added `.env` to `.gitignore`
+- [ ] Implemented rate limiting (optional)
+- [ ] Set cookie `secure: true` for HTTPS
+- [ ] Configured firewall rules
+- [ ] Set up regular backups
+
+---
+
+## 📝 Environment Variables Reference
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `AZURE_CLIENT_ID` | ✅ Yes | Application (client) ID from Azure | `12345678-1234-...` |
+| `AZURE_TENANT_ID` | ✅ Yes | Directory (tenant) ID from Azure | `87654321-4321-...` |
+| `AZURE_CLIENT_SECRET` | ✅ Yes | Client secret value from Azure | `ABC123xyz...` |
+| `SESSION_SECRET` | ✅ Yes | Random string for session encryption | `a1b2c3d4e5...` |
+| `PORT` | ❌ No | Server port (default: 3000) | `3000` |
+| `NODE_ENV` | ❌ No | Environment mode | `development` or `production` |
+| `REDIRECT_URI` | ❌ No | OAuth callback URL | `http://localhost:3000/redirect` |
+| `POST_LOGOUT_REDIRECT_URI` | ❌ No | Post-logout redirect | `http://localhost:3000` |
+
+---
+
+## 🌐 Deploying to Production VM
+
+### Step-by-Step Deployment
+
+```bash
+# 1. SSH into VM
+ssh user@your-vm-ip
+
+# 2. Install Node.js (if not installed)
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# 3. Clone/upload project
+git clone your-repo-url
+# OR
+scp -r customer-portal/ user@vm-ip:/home/user/
+
+# 4. Navigate to project
+cd customer-portal
+
+# 5. Install dependencies
+npm install --production
+
+# 6. Update .env for production
+nano .env
+# Change:
+# - NODE_ENV=production
+# - REDIRECT_URI=https://your-domain.com/redirect
+# - POST_LOGOUT_REDIRECT_URI=https://your-domain.com
+
+# 7. Install PM2
+sudo npm install -g pm2
+
+# 8. Start application
+pm2 start server.js --name customer-portal
+
+# 9. Enable startup on boot
+pm2 startup
+pm2 save
+
+# 10. Configure Nginx reverse proxy
+sudo nano /etc/nginx/sites-available/customer-portal
+
+# 11. Enable site
+sudo ln -s /etc/nginx/sites-available/customer-portal /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+
+# 12. Get SSL certificate
+sudo apt-get install certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com
+
+# 13. Update Azure AD redirect URIs
+# Add: https://your-domain.com/redirect
+```
+
+---
+
+## 💡 Tips & Best Practices
+
+### Security
+- Rotate client secrets every 6-12 months
+- Use strong, unique SESSION_SECRET
+- Enable HTTPS in production (required by Azure AD)
+- Implement rate limiting for login attempts
+- Monitor failed authentication attempts
+- Keep dependencies updated (`npm audit`)
+
+### Performance
+- Use PM2 cluster mode for multiple instances
+- Implement Redis for session storage (high traffic)
+- Enable gzip compression
+- Use CDN for static assets
+- Monitor memory usage
+
+### Development
+- Use `nodemon` for auto-reload during development
+- Keep .env files separate for dev/staging/prod
+- Test authentication flow in incognito mode
+- Use environment-specific logging
+- Document any custom modifications
+
+---
+
+## 📞 Support & Resources
+
+### Official Documentation
+- **Azure AD**: https://docs.microsoft.com/azure/active-directory
+- **MSAL Node**: https://github.com/AzureAD/microsoft-authentication-library-for-js
+- **Express**: https://expressjs.com
+- **EJS Templates**: https://ejs.co
+
+### Common Links
+- **Azure Portal**: https://portal.azure.com
+- **Azure AD Admin**: https://aad.portal.azure.com
+- **Microsoft Identity Platform**: https://docs.microsoft.com/azure/active-directory/develop
+
+### Getting Help
+1. Check server console logs
+2. Review browser console (F12)
+3. Check Azure AD sign-in logs
+4. Review PM2 logs: `pm2 logs`
+5. Check nginx error logs: `/var/log/nginx/error.log`
+
+---
+
+## 📊 Monitoring & Logging
+
+### View Logs
+```bash
+# Application logs (PM2)
+pm2 logs customer-portal
+
+# Specific log file
+pm2 logs customer-portal --lines 100
+
+# Error logs only
+pm2 logs customer-portal --err
+
+# Nginx access logs
+sudo tail -f /var/log/nginx/access.log
+
+# Nginx error logs
+sudo tail -f /var/log/nginx/error.log
+```
+
+### Monitor Performance
+```bash
+# PM2 monitoring
+pm2 monit
+
+# Check memory usage
+free -h
+
+# Check disk space
+df -h
+
+# Check CPU usage
+top
+
+# Check running processes
+ps aux | grep node
+```
+
+---
+
+## ✅ Pre-Launch Checklist
+
+### Before Going Live
+- [ ] All routes tested and working
+- [ ] Login/logout flow verified
+- [ ] HTTPS certificate installed and valid
+- [ ] Environment variables set correctly
+- [ ] Azure AD redirect URIs updated
+- [ ] PM2 configured with auto-restart
+- [ ] Nginx reverse proxy configured
+- [ ] Firewall rules configured
+- [ ] Backup strategy in place
+- [ ] Monitoring set up
+- [ ] Error logging configured
+- [ ] Performance tested
+- [ ] Security audit completed
+- [ ] Documentation updated
+- [ ] Team trained on deployment
+
+---
+
+## 🎯 Next Steps
+
+After successful deployment:
+
+1. **Add Database Integration**
+   - MongoDB, PostgreSQL, or MySQL
+   - Store user preferences, tickets, invoices
+
+2. **Implement Real Features**
+   - Connect to your actual billing system
+   - Integrate with ticketing platform
+   - Add file upload capabilities
+
+3. **Enhance Security**
+   - Add rate limiting (express-rate-limit)
+   - Implement CSRF protection
+   - Add input validation/sanitization
+   - Set up security headers (helmet)
+
+4. **Improve UX**
+   - Add loading indicators
+   - Implement error messages
+   - Add pagination for lists
+   - Improve mobile responsiveness
+
+5. **Add Monitoring**
+   - Application Performance Monitoring (APM)
+   - Error tracking (Sentry, Rollbar)
+   - Uptime monitoring
+   - Analytics
+
+---
+
+**Version:** 1.0.0  
+**Last Updated:** 2024  
+**License:** MIT

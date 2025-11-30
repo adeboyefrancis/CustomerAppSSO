@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Portal - Profile</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        nav {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #667eea; }
+        .nav-links a {
+            margin-left: 2rem;
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover { color: #667eea; }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        .profile-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .profile-section h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group input[readonly] {
+            background: #f5f7fa;
+            color: #666;
+        }
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+            margin-left: 1rem;
+            text-decoration: none;
+        }
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 2rem;
+        }
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            margin: 0 auto 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">🏢 Customer Portal</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/invoices">Invoices</a>
+            <a href="/support">Support</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>👤 My Profile</h1>
+            <p>Manage your account information and preferences</p>
+        </div>
+
+        <div class="profile-section">
+            <div class="avatar-section">
+                <div class="avatar">
+                    <%= (user.name || user.username || 'U').charAt(0).toUpperCase() %>
+                </div>
+                <h3><%= user.name || user.username %></h3>
+                <p style="color: #666;"><%= user.username %></p>
+            </div>
+
+            <div class="info-box">
+                <strong>ℹ️ Note:</strong> Your profile information is managed through Microsoft Azure AD. Some fields cannot be edited here.
+            </div>
+
+            <h2>Account Information</h2>
+            <form action="/profile/update" method="POST">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="name" value="<%= user.name || '' %>" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" value="<%= user.username || '' %>" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Account ID</label>
+                    <input type="text" value="<%= user.localAccountId || 'N/A' %>" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" name="phone" placeholder="Enter your phone number">
+                </div>
+
+                <div class="form-group">
+                    <label>Company Name</label>
+                    <input type="text" name="company" placeholder="Enter your company name">
+                </div>
+
+                <div class="form-group">
+                    <label>Notification Preferences</label>
+                    <select name="notifications">
+                        <option value="all">All Notifications</option>
+                        <option value="important">Important Only</option>
+                        <option value="none">None</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="/dashboard" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+
+        <div class="profile-section">
+            <h2>Security Information</h2>
+            <div class="form-group">
+                <label>Authentication Method</label>
+                <input type="text" value="Microsoft Azure AD (Single Sign-On)" readonly>
+            </div>
+            <div class="form-group">
+                <label>Tenant ID</label>
+                <input type="text" value="<%= user.tenantId || 'N/A' %>" readonly>
+            </div>
+            <p style="color: #666; margin-top: 1rem;">
+                🔒 Your account is secured through Microsoft Azure Active Directory. 
+                To change your password or security settings, please use your Microsoft account portal.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

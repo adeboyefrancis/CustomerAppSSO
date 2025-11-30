@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Portal - Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        nav {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #667eea; }
+        .nav-links a {
+            margin-left: 2rem;
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover { color: #667eea; }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .welcome-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        .welcome-section h1 { margin-bottom: 0.5rem; }
+        .welcome-section p { opacity: 0.9; }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        .card p { color: #666; line-height: 1.6; margin-bottom: 1rem; }
+        .card a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .card a:hover { text-decoration: underline; }
+        .profile-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .profile-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .profile-item:last-child { border-bottom: none; }
+        .profile-label { font-weight: 600; color: #333; }
+        .profile-value { color: #666; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">🏢 Customer Portal</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/invoices">Invoices</a>
+            <a href="/support">Support</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h1>Welcome back, <%= user.name || user.username %>! 👋</h1>
+            <p>Here's what's happening with your account today</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>📊 Account Overview</h2>
+                <p>Your account is active and in good standing.</p>
+                <p><strong>Account ID:</strong> <%= user.localAccountId || 'N/A' %></p>
+                <a href="/profile">View Full Details →</a>
+            </div>
+
+            <div class="card">
+                <h2>💳 Recent Invoices</h2>
+                <p>View and download your latest billing statements.</p>
+                <p><strong>Last Invoice:</strong> $250.00 (Paid)</p>
+                <a href="/invoices">View All Invoices →</a>
+            </div>
+
+            <div class="card">
+                <h2>🛠️ Support Tickets</h2>
+                <p>Track your support requests and get help.</p>
+                <p><strong>Open Tickets:</strong> 2</p>
+                <a href="/support">Create New Ticket →</a>
+            </div>
+
+            <div class="card">
+                <h2>📦 Services</h2>
+                <p>Manage your active services and subscriptions.</p>
+                <p><strong>Active Services:</strong> 3</p>
+                <a href="/profile">Manage Services →</a>
+            </div>
+
+            <div class="card">
+                <h2>📈 Usage Statistics</h2>
+                <p>Monitor your resource usage and performance.</p>
+                <p><strong>Current Usage:</strong> 65%</p>
+                <a href="#">View Analytics →</a>
+            </div>
+
+            <div class="card">
+                <h2>🔔 Notifications</h2>
+                <p>Stay updated with important announcements.</p>
+                <p><strong>New Messages:</strong> 2</p>
+                <a href="#">View All →</a>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <h2 style="color: #667eea; margin-bottom: 1.5rem;">Your Profile Information</h2>
+            <div class="profile-item">
+                <span class="profile-label">Name:</span>
+                <span class="profile-value"><%= user.name || 'Not provided' %></span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">Email:</span>
+                <span class="profile-value"><%= user.username || 'Not provided' %></span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">Account ID:</span>
+                <span class="profile-value"><%= user.localAccountId || 'Not provided' %></span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">Environment:</span>
+                <span class="profile-value"><%= user.environment || 'Not provided' %></span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">Tenant ID:</span>
+                <span class="profile-value"><%= user.tenantId || 'Not provided' %></span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
