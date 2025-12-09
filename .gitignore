@@ -102,4 +102,4 @@ coverage/
 
 # Locals
 .txt
-guide.local
+*.local
