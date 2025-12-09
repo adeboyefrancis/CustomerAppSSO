@@ -715,49 +715,6 @@ curl http://YOUR_VM_IP:3000
 
 ---
 
-## Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    DEPLOYMENT OPTIONS                    │
-└─────────────────────────────────────────────────────────┘
-
-Option 1: VM POC with Direct HTTPS (Port 443)
-┌──────────────┐
-│   Browser    │ → https://VM_IP:443
-└──────────────┘
-       ↓
-┌──────────────┐
-│   Node.js    │ (Port 443, USE_HTTPS=true)
-│ + SSL Certs  │ (Self-signed)
-└──────────────┘
-
-Option 2: VM POC with HTTP (Port 3000)
-┌──────────────┐
-│   Browser    │ → http://VM_IP:3000
-└──────────────┘
-       ↓
-┌──────────────┐
-│   Node.js    │ (Port 3000, USE_HTTPS=false)
-└──────────────┘
-
-Option 3: Production with Nginx (Recommended)
-┌──────────────┐
-│   Browser    │ → https://domain.com:443
-└──────────────┘
-       ↓
-┌──────────────┐
-│    Nginx     │ (Port 443, SSL with Let's Encrypt)
-│ Reverse Proxy│
-└──────────────┘
-       ↓
-┌──────────────┐
-│   Node.js    │ (Port 3000, USE_HTTPS=false)
-└──────────────┘
-```
-
----
-
 ## Support & Resources
 
 - **Azure AD Documentation**: https://docs.microsoft.com/azure/active-directory
